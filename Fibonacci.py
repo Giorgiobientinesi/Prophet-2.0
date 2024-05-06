@@ -2,10 +2,8 @@ import warnings
 warnings.filterwarnings("ignore")
 import pandas as pd
 import yfinance as yf
-import warnings
 from datetime import date,datetime, timedelta, timezone
 import numpy as np
-import plotly.express as px
 import streamlit as st
 
 today_date = date.today()
