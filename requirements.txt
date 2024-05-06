@@ -1,0 +1,6 @@
+warnings
+pandas
+yfinance
+datetime
+numoy
+streamlit
