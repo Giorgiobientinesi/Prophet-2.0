@@ -94,7 +94,8 @@ if genera:
 
 
 
-    st.write(in_fibonacci)
+    df = pd.DataFrame(in_fibonacci)
+    st.dataframe(df)
 
 
 
