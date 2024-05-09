@@ -10,11 +10,46 @@ today_date = date.today()
 tickers = pd.read_csv("All-stocks.csv")
 tickers = tickers["Symbol"]
 
-st.write("Scraper Fibonacci")
+
+def cluster_numbers(numbers, percentage_threshold=0.03):
+    clusters = []
+
+    # Sort numbers for easier clustering
+    sorted_numbers = sorted(numbers)
+
+    i = 0
+    while i < len(sorted_numbers):
+        current_number = sorted_numbers[i]
+        lower_bound = current_number * (1 - percentage_threshold)
+        upper_bound = current_number * (1 + percentage_threshold)
+        cluster = [current_number]
+
+        # Check subsequent numbers if they belong to this cluster
+        j = i + 1
+        while j < len(sorted_numbers):
+            if lower_bound <= sorted_numbers[j] <= upper_bound:
+                cluster.append(sorted_numbers[j])
+                j += 1
+            else:
+                break
+
+        # Move i to the end of this cluster
+        i = j
+        clusters.append(cluster)
+
+    return clusters
+
+
+
+st.write("Scraper")
 genera = st.button("Genera file azioni!")
 contatore = 0
 if genera:
+
     in_fibonacci = []
+    in_virus = []
+
+
     today_date = datetime.today().date()
     for ticker in tickers:
         contatore +=1
@@ -24,11 +59,11 @@ if genera:
         df = pd.DataFrame(data.history(start="2023-01-01", end=today_date, interval="1d"))
 
         if len(df) > 0:
-
             df = df.reset_index()
             df["Date"] = df["Date"].dt.tz_localize(None)
-
             df_test = df
+
+            # FIBONACCI
 
             i = 15  # minimo locale definito come il minimo dei 30 giorni intorno
             minimi_locali = []
@@ -38,7 +73,6 @@ if genera:
                 if i == primo['Low'].idxmin():
                     minimi_locali.append(i)
                 i += 1
-
             if len(minimi_locali) > 0:
                 latest_min_index = minimi_locali[-1]
                 latest_max_index = df_test['High'][latest_min_index:].idxmax()
@@ -92,10 +126,54 @@ if genera:
                                     in_fibonacci.append([ticker, df_test["Date"].iloc[latest_min_index],
                                                          df_test["Date"].iloc[latest_max_index]])
 
+            i = 10  # minimo locale definito come il minimo dei 30 giorni intorno
+            minimi_locali = []
+            while i < len(df) - 10:
+                primo = df[i - 10:i + 10]
+
+                if i == primo['Low'].idxmin():
+                    minimi_locali.append(i)
+                i += 1
+
+            prezzi = []
+            date = []
+
+            for el in minimi_locali:
+                prezzi.append(df.iloc[el]["Low"])
+                date.append(df.iloc[el]["Date"])
+
+            clusters = cluster_numbers(prezzi, percentage_threshold=0.03)
+            resistenze = []
+            for el in clusters:
+                if len(el) > 2:
+                    resistenze.append(min(el))
+
+            oggi = df["Close"].iloc[-1]
+
+            for resistenza in resistenze:
+                if resistenza * 0.98 < oggi < resistenza * 1.02 and resistenza < oggi:
+                    if ticker not in in_virus:
+                        in_virus.append([ticker, resistenza])
 
 
-    df = pd.DataFrame(in_fibonacci)
-    st.dataframe(df)
+    in_fibo = pd.DataFrame(in_fibonacci)
+    in_virus = pd.DataFrame(in_virus)
+
+    st.title("Fibonacci")
+    st.dataframe(in_fibo)
+
+    st.title("Virus")
+    st.dataframe(in_virus)
+
+
+
+
+
+
+
+
+
+
 
 
 
