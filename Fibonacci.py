@@ -151,7 +151,7 @@ if genera:
             oggi = df["Close"].iloc[-1]
 
             for resistenza in resistenze:
-                if resistenza * 0.98 < oggi < resistenza * 1.02 and resistenza < oggi:
+                if resistenza * 1.02 > oggi > resistenza and df["Close"].iloc[-5] > oggi:
                     if ticker not in in_virus:
                         in_virus.append([ticker, resistenza])
 
